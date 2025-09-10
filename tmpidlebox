@@ -1,20 +1,11 @@
-#!/bin/bash
-set -e
-((EUID==0)) || { echo "run as root"; exit 1; }
-
-BBOX="${1:-$(which busybox)}"
-TMP=$(mktemp -d /tmp/container-XXXX)
-trap 'rm -rf "$TMP"' EXIT
-
-mkdir -p "$TMP/bin"
-mkdir -p "$TMP/sbin"
-mkdir -p "$TMP/etc"
-cp $BBOX "$TMP/bin/busybox"
-"$TMP/bin/busybox" --install "$TMP/bin"
+#!/bin/sh
+[ "$(id -u)" -eq 0 ] || { echo "run as root"; exit 1; }
+TMP=$(mktemp -d /tmp/container-XXXX); trap 'rm -rf "$TMP"' EXIT
+mkdir -p "$TMP/"{bin,sbin,root,etc}
+cp "${1:-$(command -v busybox)}" "$TMP/bin/busybox" || { echo "give busybox"; exit 1; }
+"$TMP/bin/busybox" --install "$TMP/bin" || { echo "not valid busybox"; exit 1; }
 "$TMP/bin/busybox" --install "$TMP/sbin"
 touch "$TMP/etc/os-release"
-echo '::respawn:/sbin/getty -L pts/0 115200 linux' > "$TMP/etc/inittab"
-echo "root:x:0:0:root:/root:/bin/sh" > "$TMP/etc/passwd"
-echo "root::0:0:99999:7:::"  > "$TMP/etc/shadow"
-mkdir "$TMP/root"
+echo 'root::0:0:root:/root:/bin/sh' >"$TMP/etc/passwd"
+echo '::respawn:/sbin/getty -L pts/0 115200 linux' >"$TMP/etc/inittab"
 systemd-nspawn -D "$TMP" --boot
