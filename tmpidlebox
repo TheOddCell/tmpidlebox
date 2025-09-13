@@ -8,4 +8,6 @@ cp "${1:-$(command -v busybox)}" "$TMP/bin/busybox" || { echo "give busybox"; ex
 touch "$TMP/etc/os-release"
 echo 'root::0:0:root:/root:/bin/sh' >"$TMP/etc/passwd"
 echo '::respawn:/sbin/getty -L pts/0 115200 linux' >"$TMP/etc/inittab"
+basename "$TMP" > /run/tmpidlebox
 systemd-nspawn -D "$TMP" --boot
+rm /run/tmpidlebox

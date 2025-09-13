@@ -1,5 +1,5 @@
 pkgname=tmpidlebox
-pkgver=2.0.0
+pkgver=2.0.1
 pkgrel=1
 pkgdesc="Part of the tmplinux suite. Temporary Idlebox"
 arch=('any')
